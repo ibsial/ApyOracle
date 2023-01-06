@@ -1,5 +1,7 @@
 # ApyOracle v1
-
+```shell
+npm install
+```
 run this to attach to a contract and retreive/calculate numbers
 
 you can leave sending tx as is, the contract has no Owner
