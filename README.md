@@ -2,6 +2,8 @@
 ```shell
 npm install
 ```
+create .env file and fill as .env.example
+
 run this to attach to a contract and retreive/calculate numbers
 
 you can leave sending tx as is, the contract has no Owner
