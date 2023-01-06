@@ -4,11 +4,9 @@ const { ethers } = require("hardhat");
 /* todo:
     1) подключить ещё 2 api эндпойнта 
 
-    5) "причесать контракт": сделать онлиовнера и тест
-
     6) сделать обработку ошибки фетч
 
-    *) сделать подтверждение через телегу
+    *) сделать подтверждение через что-либо, напр телегу
 */
 var addressToApy = new Map();
 var positionToAddress = new Map();
@@ -193,7 +191,8 @@ function floatToFormatedHex(inputFloatNumbers) {
     }
     console.log("\nhere are the results..  ٩(｡•́‿•̀｡)۶\n");
     console.log("binary: ", binaryOutput);
-    console.log("hex: ", doubleNumbers);
+    console.log("hex: ", doubleNumbers);   
+
     return doubleNumbers;
 }
 
@@ -301,11 +300,21 @@ async function postNewApy() {
         (error) =>
             async function () {
                 // what should be here?
+                console.log("fetch failed..");
+                await new Promise(r => setTimeout(r, 5000));
+                await fetchYearnApy();
             }
     );
     await fetchTokenPositions(yearnTokens);
     let orderedApyArr = orderTokenApy(yearnTokens);
     let doubleNumbersArr = floatToFormatedHex(orderedApyArr);
+    await new Promise(r => setTimeout(r, 5000));
+    console.log("\n\n\nHey! Someone sent you very important message during the execution..") 
+    console.log("I'll have to pause and print it out for you, sorry for the delay... |･ω･)\n\n\n");    
+    await new Promise(r => setTimeout(r, 5000));
+    console.log("(*ﾟ∀ﾟ)ノ☆Happy New Year☆ヽ(ﾟ∀ﾟ*)");
+    console.log("dream on and make your dreams come true (◕‿◕)♡")
+    await new Promise(r => setTimeout(r, 5000)); 
     let newApySlots = hexToBytes32(doubleNumbersArr);
     // await sendApySlots(newApySlots); // comment this function to see calculations only
 }
@@ -315,9 +324,9 @@ async function changeTokenPositions() {
     await addTokens(arrayOfAddressesArrays);
 }
 async function main() {
-    await postNewApy();
+    postNewApy();
 
-    // await changeTokenPositions();
+    // changeTokenPositions();
 }
 
 main().catch((error) => {
