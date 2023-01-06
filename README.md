@@ -1,16 +1,14 @@
-# Sample Hardhat Project
+# ApyOracle v1
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+run this to attach to a contract and retreive/calculate numbers
 
-Try running some of the following tasks:
-
+you can leave sending tx as is, the contract has no Owner
 ```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-
+npx hardhat run .\scripts\prepareNumbers.js --network goerli
+```
+```shell
+npx hardhat test\tests.js
+```
+```shell
 npx prettier '**/*.{json,sol,js}' --write
-node .\scripts\prepareNumbers.js
 ```
