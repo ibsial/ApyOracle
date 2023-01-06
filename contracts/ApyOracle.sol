@@ -3,6 +3,7 @@
 pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+
 contract Float is Ownable {
     mapping(address => PositionData) public position;
 
@@ -12,7 +13,7 @@ contract Float is Ownable {
     }
 
     mapping(uint128 => bytes32) public values;
-    
+
     constructor() {
         _transferOwnership(_msgSender());
     }
@@ -20,7 +21,11 @@ contract Float is Ownable {
     function _addNumber(uint32 _slot, bytes32 _preparedNumber) internal {
         values[_slot] = _preparedNumber;
     }
-    function addNumber(uint32 _slot, bytes32 _preparedNumber) external onlyOwner {
+
+    function addNumber(
+        uint32 _slot,
+        bytes32 _preparedNumber
+    ) external onlyOwner {
         _addNumber(_slot, _preparedNumber);
     }
 
@@ -36,10 +41,15 @@ contract Float is Ownable {
             _addNumber(_slots[i], _preparedNumbers[i]);
         }
     }
+
     function _addToken(address _token, PositionData memory _position) internal {
         position[_token] = _position;
     }
-    function addToken(address _token, PositionData memory _position) external onlyOwner {
+
+    function addToken(
+        address _token,
+        PositionData memory _position
+    ) external onlyOwner {
         _addToken(_token, _position);
     }
 
@@ -51,6 +61,7 @@ contract Float is Ownable {
             _addToken(_token[i], _position[i]);
         }
     }
+
     //// is there a reason to make it private?
     function _getValue(
         uint128 _slot,

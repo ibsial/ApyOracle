@@ -53,7 +53,7 @@ async function fetchYearnApy() {
             data[i].token.address,
             (data[i].apy.net_apy * 100).toFixed(3)
         );
-    };
+    }
 }
 
 // get token positions for hardcoded tokenlist
@@ -77,7 +77,7 @@ async function fetchTokenPositions(addressArray) {
 function orderTokenApy(addressArray) {
     let slot = 0;
     let orderedApyArr = [];
-    console.log(" \norder received data in a special way __φ(．．) \n")
+    console.log(" \norder received data in a special way __φ(．．) \n");
     for (let i = 0; i < addressArray.length; i++) {
         let token = positionToAddress.get(`${slot},${2 * (i % 16)}`);
         let apy = addressToApy.get(token);
@@ -109,7 +109,7 @@ function floatToFormatedHex(inputFloatNumbers) {
     let doubleNumbers = [];
     let binaryOutput = [];
 
-    console.log("\nconverting floats to hex ( ´-ω･)︻┻┳══━一\n")
+    console.log("\nconverting floats to hex ( ´-ω･)︻┻┳══━一\n");
 
     for (number in inputFloatNumbers) {
         /* 
@@ -297,9 +297,12 @@ async function addTokens(addressesArrays) {
 }
 
 async function postNewApy() {
-    await fetchYearnApy().catch((error) => async function () {
-        // what should be here? 
-    });
+    await fetchYearnApy().catch(
+        (error) =>
+            async function () {
+                // what should be here?
+            }
+    );
     await fetchTokenPositions(yearnTokens);
     let orderedApyArr = orderTokenApy(yearnTokens);
     let doubleNumbersArr = floatToFormatedHex(orderedApyArr);
@@ -318,6 +321,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+    console.error(error);
+    process.exitCode = 1;
 });
