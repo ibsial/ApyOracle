@@ -2,7 +2,7 @@
 ```shell
 npm install
 ```
-create .env file and fill as .env.example
+### create .env file and fill as .env.example
 
 run this to attach to a contract and retreive/calculate numbers
 
