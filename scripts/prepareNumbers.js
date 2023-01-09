@@ -75,7 +75,7 @@ async function fetchTokenPositions(addressArray) {
 function orderTokenApy(addressArray) {
     let slot = 0;
     let orderedApyArr = [];
-    console.log(" \norder received data in a special way __φ(．．) \n");
+    console.log("order received data");
     for (let i = 0; i < addressArray.length; i++) {
         let token = positionToAddress.get(`${slot},${2 * (i % 16)}`);
         let apy = addressToApy.get(token);
@@ -107,7 +107,7 @@ function floatToFormatedHex(inputFloatNumbers) {
     let doubleNumbers = [];
     let binaryOutput = [];
 
-    console.log("\nconverting floats to hex ( ´-ω･)︻┻┳══━一\n");
+    console.log("converting floats to hex");
 
     for (number in inputFloatNumbers) {
         /* 
@@ -189,7 +189,6 @@ function floatToFormatedHex(inputFloatNumbers) {
         }
         doubleNumbers.push(binToHex);
     }
-    console.log("\nhere are the results..  ٩(｡•́‿•̀｡)۶\n");
     console.log("binary: ", binaryOutput);
     console.log("hex: ", doubleNumbers);   
 
@@ -219,7 +218,7 @@ function hexToBytes32(hexArray) {
         bytes32String = "0x" + bytes32String + "0000".repeat(16 - i);
         bytes32Strings.push(bytes32String);
     }
-    console.log(" \n\nfinally slots to post! ＼(≧▽≦)／\n");
+    console.log("slots to post!");
     console.log(bytes32Strings);
     return bytes32Strings;
 }
@@ -266,7 +265,6 @@ async function splitArrayToFixedLength(addressesArray) {
 }
 // functions to change token positions
 async function addTokens(addressesArrays) {
-    // note that apys are added "backwards", so add positions accordingly
     const [signer] = await ethers.getSigners();
     let ApyOracleFactory = await ethers.getContractFactory("Float");
     let ApyOracle = ApyOracleFactory.attach(
@@ -308,15 +306,8 @@ async function postNewApy() {
     await fetchTokenPositions(yearnTokens);
     let orderedApyArr = orderTokenApy(yearnTokens);
     let doubleNumbersArr = floatToFormatedHex(orderedApyArr);
-    await new Promise(r => setTimeout(r, 5000));
-    console.log("\n\n\nHey! Someone sent you very important message during the execution..") 
-    console.log("I'll have to pause and print it out for you, sorry for the delay... |･ω･)\n\n\n");    
-    await new Promise(r => setTimeout(r, 5000));
-    console.log("(*ﾟ∀ﾟ)ノ☆Happy New Year☆ヽ(ﾟ∀ﾟ*)");
-    console.log("dream on and make your dreams come true (◕‿◕)♡")
-    await new Promise(r => setTimeout(r, 5000)); 
     let newApySlots = hexToBytes32(doubleNumbersArr);
-    // await sendApySlots(newApySlots); // comment this function to see calculations only
+    await sendApySlots(newApySlots); // comment this function to see calculations only
 }
 
 async function changeTokenPositions() {
