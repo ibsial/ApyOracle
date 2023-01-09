@@ -1,13 +1,6 @@
 // const hre = require("hardhat");
 const { ethers } = require("hardhat");
 
-/* todo:
-    1) подключить ещё 2 api эндпойнта 
-
-    6) сделать обработку ошибки фетч
-
-    *) сделать подтверждение через что-либо, напр телегу
-*/
 var addressToApy = new Map();
 var positionToAddress = new Map();
 
