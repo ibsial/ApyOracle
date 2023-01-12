@@ -5,7 +5,6 @@ const { expect } = require("chai");
 var addressToApy = new Map();
 var positionToAddress = new Map();
 
-
 async function fetchYearnApy() {
     let url = `https://api.yearn.finance/v1/chains/250/vaults/all`;
     let response = await fetch(url, {});
@@ -30,10 +29,10 @@ const retryYearnFetch = async () => {
         await fetchYearnApy();
     } catch (err) {
         console.log("fetch failed.. Retry in 5 sec");
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise((r) => setTimeout(r, 5000));
         return retryYearnFetch();
     }
-}
+};
 const yearnTokens = [
     "0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83", //WFTM
     "0x82f0B8B456c1A451378467398982d4834b6829c1", //MIM
@@ -55,7 +54,6 @@ const yearnTokens = [
     "0xfcef8a994209d6916EB2C86cDD2AFD60Aa6F54b1", //fBEETS
     "0x2dd7C9371965472E5A5fD28fbE165007c61439E1", //3poolV2-f
 ];
-
 
 describe("Float", function () {
     it("test initial value", async function () {
@@ -84,18 +82,17 @@ describe("Float", function () {
         }
         console.log(arrayOfFixedArrays);
 
-
         //add tokens to contract
         let PositionData = [];
         let positionDatas = [];
         let addr = [];
-    
+
         for (let i = 0; i < arrayOfFixedArrays.length; i++) {
             for (let j = 0; j < arrayOfFixedArrays[i].length; j++) {
                 addr.push(arrayOfFixedArrays[i][j]);
                 PositionData.push(i);
                 PositionData.push(2 * j);
-    
+
                 positionDatas.push(PositionData);
                 PositionData = [];
             }
@@ -104,7 +101,7 @@ describe("Float", function () {
         console.log(addr);
         let resp = await ApyOracle.addTokens(addr, positionDatas);
         // console.log(resp);
-        
+
         // fetch APY
         await retryYearnFetch();
         // for (i in yearnTokens) {
@@ -112,14 +109,13 @@ describe("Float", function () {
         //     console.log(yearnTokens[i], (Math.random()*(10**(i%4))).toFixed(3));
         // }
 
-
         // fetch token positions from contract
         for (let i = 0; i < yearnTokens.length; i++) {
             let pos = await ApyOracle.position(yearnTokens[i]);
             positionToAddress.set(`${pos}`, yearnTokens[i]);
             console.log(`${pos}`, yearnTokens[i]);
         }
-        
+
         // order received data
         let slot = 0;
         let orderedApyArr = [];
@@ -140,127 +136,131 @@ describe("Float", function () {
         }
         console.log("\norderedApyArray: \n", orderedApyArr);
 
-        
-    // convert float to desired format
-    let doubleNumbers = [];
-    let binaryOutput = [];
+        // convert float to desired format
+        let doubleNumbers = [];
+        let binaryOutput = [];
 
-    console.log("converting floats to hex");
-    for (number in orderedApyArr) {
-        function workaroundNum(string) {
-            return (parseFloat(orderedApyArr[number].split(".")[0] + orderedApyArr[number].split(".")[1]));
+        console.log("converting floats to hex");
+        for (number in orderedApyArr) {
+            function workaroundNum(string) {
+                return parseFloat(
+                    orderedApyArr[number].split(".")[0] +
+                        orderedApyArr[number].split(".")[1]
+                );
+            }
+            if (workaroundNum(orderedApyArr[number]) >= 1638300) {
+                // 1638.300
+                orderedApyArr[number] = parseFloat(orderedApyArr[number])
+                    .toFixed(1)
+                    .toString();
+            }
+
+            if (workaroundNum(orderedApyArr[number]) > 163830) {
+                // 163.830
+                orderedApyArr[number] = orderedApyArr[number].split(".")[0];
+            }
+            if (workaroundNum(orderedApyArr[number]) > 16383) {
+                // 16.383
+                orderedApyArr[number] = parseFloat(orderedApyArr[number])
+                    .toFixed(2)
+                    .toString();
+            }
+
+            // split float number into integer and decimal parts
+            let integerPart = orderedApyArr[number].split(".")[0];
+            let decimalPart = orderedApyArr[number].split(".")[1];
+
+            if (decimalPart == undefined) {
+                decimalPart = "";
+            }
+
+            // concatenate 2 numbers to remove dot
+            let finalNumber = integerPart + decimalPart;
+
+            // calculate mantissa and add leading 0 if mantissa equals 0 or 1
+            let mantissa = decimalPart.length;
+            let mantissaToBinary = mantissa.toString(2);
+            if (mantissaToBinary.length == 1) {
+                mantissaToBinary = "0" + mantissaToBinary;
+            }
+            // convert concatenated number to binary
+            let decToBinary = parseInt(finalNumber).toString(2);
+
+            // check if number is > 16383
+            //  if true put 16383
+            if (mantissaToBinary.length + decToBinary.length > 16) {
+                console.log("FAIL! \nconverting this number to max int14");
+                decToBinary = parseInt("16383").toString(2);
+            }
+
+            // append zeros after mantissa if binary length < 16
+            if (mantissaToBinary.length + decToBinary.length < 16) {
+                let diff = 16 - mantissaToBinary.length - decToBinary.length;
+                // console.log("lacking zeros: ", diff);
+                mantissaToBinary = mantissaToBinary + "0".repeat(diff);
+                // console.log(mantissaToBinary);
+            }
+
+            let encodedBinary = mantissaToBinary + decToBinary;
+
+            // console.log("binary result: ", encodedBinary);
+            binaryOutput.push(encodedBinary);
+
+            // convert result to hex
+            let binToHex = parseInt(encodedBinary, 2).toString(16);
+
+            // if hex number is smaller then 4 digits
+            // append zeros
+            if (binToHex.length < 4) {
+                binToHex = "0".repeat(4 - binToHex.length) + binToHex;
+            }
+            doubleNumbers.push(binToHex);
         }
-        if (workaroundNum(orderedApyArr[number]) >= 1638300) { // 1638.300
-            orderedApyArr[number] = parseFloat(
-                orderedApyArr[number]
-            )
-                .toFixed(1)
-                .toString();
+        console.log("binary: ", binaryOutput);
+        console.log("hex: ", doubleNumbers);
+
+        // numbers to slots
+        i = 0;
+        let bytes32String = "";
+        let bytes32Strings = [];
+        for (hex in doubleNumbers) {
+            bytes32String = bytes32String + doubleNumbers[hex];
+            // slot contains 16 uint16 numbers
+            if (i == 15) {
+                i = 0;
+                bytes32Strings.push("0x" + bytes32String);
+                bytes32String = "";
+                continue;
+            }
+            i++;
         }
 
-        if (workaroundNum(orderedApyArr[number]) > 163830) { // 163.830
-            orderedApyArr[number] =
-            orderedApyArr[number].split(".")[0];
+        if (i != 0) {
+            bytes32String = "0x" + bytes32String + "0000".repeat(16 - i);
+            bytes32Strings.push(bytes32String);
         }
-        if (workaroundNum(orderedApyArr[number]) > 16383) { // 16.383
-            orderedApyArr[number] = parseFloat(orderedApyArr[number])
-            .toFixed(2)
-            .toString();
+        console.log("slots to post!");
+        console.log(bytes32Strings);
+
+        slots = [];
+        for (slot in bytes32Strings) {
+            slots.push(slot);
         }
+        console.log("\nsending tx with such parameters (;;;*_*)");
+        console.log(slots, bytes32Strings);
+        let res = await ApyOracle.addNumbers(slots, bytes32Strings);
+        console.log(res);
+        console.log("and done!ヽ(°〇°)ﾉ");
 
-        // split float number into integer and decimal parts
-        let integerPart = orderedApyArr[number].split(".")[0];
-        let decimalPart = orderedApyArr[number].split(".")[1];
-
-        if (decimalPart == undefined) {
-            decimalPart = "";
+        let ApySent = [];
+        let ApyWritten = [];
+        for (i = 0; i < yearnTokens.length; i++) {
+            ApySent.push(addressToApy.get(yearnTokens[i]));
+            ApyWritten.push(
+                (await ApyOracle.getValueForToken(yearnTokens[i])).toString()
+            );
         }
-
-        // concatenate 2 numbers to remove dot
-        let finalNumber = integerPart + decimalPart;
-
-        // calculate mantissa and add leading 0 if mantissa equals 0 or 1
-        let mantissa = decimalPart.length;
-        let mantissaToBinary = mantissa.toString(2);
-        if (mantissaToBinary.length == 1) {
-            mantissaToBinary = "0" + mantissaToBinary;
-        }
-        // convert concatenated number to binary
-        let decToBinary = parseInt(finalNumber).toString(2);
-
-        // check if number is > 16383
-        //  if true put 16383
-        if (mantissaToBinary.length + decToBinary.length > 16) {
-            console.log("FAIL! \nconverting this number to max int14");
-            decToBinary = parseInt("16383").toString(2);
-        }
-
-        // append zeros after mantissa if binary length < 16
-        if (mantissaToBinary.length + decToBinary.length < 16) {
-            let diff = 16 - mantissaToBinary.length - decToBinary.length;
-            // console.log("lacking zeros: ", diff);
-            mantissaToBinary = mantissaToBinary + "0".repeat(diff);
-            // console.log(mantissaToBinary);
-        }
-
-        let encodedBinary = mantissaToBinary + decToBinary;
-
-        // console.log("binary result: ", encodedBinary);
-        binaryOutput.push(encodedBinary);
-
-        // convert result to hex
-        let binToHex = parseInt(encodedBinary, 2).toString(16);
-
-        // if hex number is smaller then 4 digits
-        // append zeros
-        if (binToHex.length < 4) {
-            binToHex = "0".repeat(4 - binToHex.length) + binToHex;
-        }
-        doubleNumbers.push(binToHex);
-    }
-    console.log("binary: ", binaryOutput);
-    console.log("hex: ", doubleNumbers);
-
-    // numbers to slots
-    i = 0;
-    let bytes32String = "";
-    let bytes32Strings = [];
-    for (hex in doubleNumbers) {
-        bytes32String = bytes32String + doubleNumbers[hex];
-        // slot contains 16 uint16 numbers
-        if (i == 15) {
-            i = 0;
-            bytes32Strings.push("0x" + bytes32String);
-            bytes32String = "";
-            continue;
-        }
-        i++;
-    }
-
-    if (i != 0) {
-        bytes32String = "0x" + bytes32String + "0000".repeat(16 - i);
-        bytes32Strings.push(bytes32String);
-    }
-    console.log("slots to post!");
-    console.log(bytes32Strings);
-
-    slots = [];
-    for (slot in bytes32Strings) {
-        slots.push(slot);
-    }
-    console.log("\nsending tx with such parameters (;;;*_*)");
-    console.log(slots, bytes32Strings);
-    let res = await ApyOracle.addNumbers(slots, bytes32Strings);
-    console.log(res);
-    console.log("and done!ヽ(°〇°)ﾉ");
-
-    let ApySent = [];
-    let ApyWritten = [];
-    for (i = 0; i < yearnTokens.length; i++) {
-        ApySent.push(addressToApy.get(yearnTokens[i]));
-        ApyWritten.push((await ApyOracle.getValueForToken(yearnTokens[i])).toString());
-    }
-    console.log("apy sent: ", ApySent);
-    console.log("apy written: ", ApyWritten);
+        console.log("apy sent: ", ApySent);
+        console.log("apy written: ", ApyWritten);
     });
 });

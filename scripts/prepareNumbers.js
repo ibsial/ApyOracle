@@ -52,11 +52,10 @@ const retryYearnFetch = async () => {
         await fetchYearnApy();
     } catch (err) {
         console.log("fetch failed.. Retry in 20 sec");
-        await new Promise(r => setTimeout(r, 20000));
+        await new Promise((r) => setTimeout(r, 20000));
         return retryYearnFetch();
     }
-}
-
+};
 
 // get token positions for hardcoded tokenlist
 // create map (position -> address) to order apy later
@@ -194,7 +193,7 @@ function floatToFormatedHex(inputFloatNumbers) {
         doubleNumbers.push(binToHex);
     }
     console.log("binary: ", binaryOutput);
-    console.log("hex: ", doubleNumbers);   
+    console.log("hex: ", doubleNumbers);
 
     return doubleNumbers;
 }
