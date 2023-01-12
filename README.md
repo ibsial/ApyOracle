@@ -11,7 +11,7 @@ you can leave sending tx as is, the contract has no Owner
 npx hardhat run .\scripts\prepareNumbers.js --network goerli
 ```
 ```shell
-npx hardhat test\tests.js
+npx hardhat test test\tests.js
 ```
 ```shell
 npx prettier '**/*.{json,sol,js}' --write

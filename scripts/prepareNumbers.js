@@ -47,6 +47,17 @@ async function fetchYearnApy() {
     }
 }
 
+const retryYearnFetch = async () => {
+    try {
+        await fetchYearnApy();
+    } catch (err) {
+        console.log("fetch failed.. Retry in 20 sec");
+        await new Promise(r => setTimeout(r, 20000));
+        return retryYearnFetch();
+    }
+}
+
+
 // get token positions for hardcoded tokenlist
 // create map (position -> address) to order apy later
 async function fetchTokenPositions(addressArray) {
@@ -287,20 +298,13 @@ async function addTokens(addressesArrays) {
 }
 
 async function postNewApy() {
-    await fetchYearnApy().catch(
-        (error) =>
-            async function () {
-                // what should be here?
-                console.log("fetch failed..");
-                await new Promise(r => setTimeout(r, 5000));
-                await fetchYearnApy();
-            }
-    );
+    await retryYearnFetch();
+
     await fetchTokenPositions(yearnTokens);
     let orderedApyArr = orderTokenApy(yearnTokens);
     let doubleNumbersArr = floatToFormatedHex(orderedApyArr);
     let newApySlots = hexToBytes32(doubleNumbersArr);
-    await sendApySlots(newApySlots); // comment this function to see calculations only
+    // await sendApySlots(newApySlots); // comment this function to see calculations only
 }
 
 async function changeTokenPositions() {
