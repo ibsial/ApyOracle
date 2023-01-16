@@ -1,7 +1,8 @@
 // const hre = require("hardhat");
 const { ethers } = require("hardhat");
-import fetch from "node-fetch";
-
+// fetch does not support require so have to dynamically import :\
+const fetch = (...args) =>
+  import('node-fetch').then(({ default: fetch }) => fetch(...args));
 var addressToApy = new Map();
 var positionToAddress = new Map();
 var beefyAddressToName = new Map();
@@ -82,10 +83,7 @@ var beefyTokens = [
             "0x5c021D9cfaD40aaFC57786b409A9ce571de375b4", // ANY-FTM LP
 ]
 
-var combinedTokens = [
-    // yearn tokens
-    // beefy tokens
-]
+var combinedTokens = yearnTokens.concat(beefyTokens);
 // fetch apy for fantom
 // set map (address -> apy) to get values later
 async function fetchYearnApy() {
@@ -107,13 +105,13 @@ async function fetchYearnApy() {
     }
 }
 
-const retryYearnFetch = async () => {
+const retryFetch = async (action) => {
     try {
-        await fetchYearnApy();
+        await action();
     } catch (err) {
         console.log("fetch failed.. Retry in 20 sec");
         await new Promise((r) => setTimeout(r, 20000));
-        return retryYearnFetch();
+        return retryFetch();
     }
 };
 
@@ -125,19 +123,18 @@ async function fetchBeefyVaultName() {
 
     for (let i = 0; i < data.length; i++) {
         beefyAddressToName.set(data[i].tokenAddress, data[i].id);
-        console.log(data[i].tokenAddress, data[i].id);
+        // console.log(data[i].tokenAddress, data[i].id);
     }
 }
 
-async function fetchBeefyApy(beefyAddressArray) {
-    let url = `https://api.yearn.finance/v1/chains/250/vaults/all`;
+async function fetchBeefyApy() {
+    let url = `https://api.beefy.finance/apy`;
     let response = await fetch(url, {});
     let data = await response.json();
-
-    for (let i = 0; i < beefyAddressArray.length; i++) {
-        let name = beefyAddressToName.get(beefyAddressArray[i]);
-        addressToApy.set(addr, data[i][name]);
-        console.log(addr, data[i][name]);
+    for (let i = 0; i < beefyTokens.length; i++) {
+        let name = beefyAddressToName.get(beefyTokens[i]);
+        addressToApy.set(beefyTokens[i], (data[name]*100).toFixed(3));
+        console.log(beefyTokens[i], name, (data[name]*100).toFixed(3));
     }    
 }
 
@@ -380,11 +377,13 @@ async function addTokens(addressesArrays) {
     console.log(resp);
 }
 
-async function postNewApy() {
-    await retryYearnFetch();
+async function postNewApy(hardcodedArray) {
+    await retryFetch(fetchYearnApy);
+    await retryFetch(fetchBeefyVaultName);
+    await retryFetch(fetchBeefyApy);
 
-    await fetchTokenPositions(yearnTokens);
-    let orderedApyArr = orderTokenApy(yearnTokens);
+    await fetchTokenPositions(hardcodedArray);
+    let orderedApyArr = orderTokenApy(hardcodedArray);
     let doubleNumbersArr = floatToFormatedHex(orderedApyArr);
     let newApySlots = hexToBytes32(doubleNumbersArr);
     // await sendApySlots(newApySlots); // comment this function to see calculations only
@@ -395,12 +394,10 @@ async function changeTokenPositions() {
     await addTokens(arrayOfAddressesArrays);
 }
 async function main() {
-    // postNewApy();
+
+    postNewApy(combinedTokens);
     // changeTokenPositions();
 
-    // fetchBeefyVaultName();
-    // fetchBeefyApy(beefyTokens);
-    await fetchYearnApy();
 }
 
 main().catch((error) => {

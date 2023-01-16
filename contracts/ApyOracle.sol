@@ -62,19 +62,17 @@ contract Float is Ownable {
         }
     }
 
-    //// is there a reason to make it private?
     function _getValue(
         uint128 _slot,
         uint _firstBytePos
-    ) public view returns (bytes32) {
+    ) private view returns (bytes32) {
         return (values[_slot] << (_firstBytePos * 8)) >> 240;
     }
 
-    //// is there a reason to make it private?
 
     // decode hex number to uint256
     // consider mantissa taking first 2 bits
-    function _decodeValue(bytes32 _value) public pure returns (uint256) {
+    function _decodeValue(bytes32 _value) private pure returns (uint256) {
         uint256 mantissa = uint256(_value) >> 14;
         uint256 body = (uint256(_value) << 242) >> 242;
         return body * (10 ** (3 - mantissa));
@@ -85,11 +83,19 @@ contract Float is Ownable {
     // we mean a float number 101.01
     // these bits are converted to a hex number
     // A775
-    function getValueForToken(address _token) public view returns (uint256) {
+    function _getValueForToken(address _token) private view returns (uint256) {
         PositionData memory pos = position[_token];
         bytes32 value = _getValue(pos.slot, pos.fraction);
         return _decodeValue(value);
     }
+    function getValueForToken(address _token) public view returns (uint256) {
+        return _getValueForToken(_token);
+    }
 
-    // function getValuesForTokens ??
+    function getValuesForTokens(address[] memory _tokens) public view returns (uint256[] memory apys) {
+        apys = new uint256[](_tokens.length);
+        for (uint i = 0; i < _tokens.length; i++) {
+            apys[i] = (_getValueForToken(_tokens[i]));
+        }
+    }
 }
