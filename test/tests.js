@@ -28,6 +28,7 @@ const retryYearnFetch = async () => {
     try {
         await fetchYearnApy();
     } catch (err) {
+        console.log(err);
         console.log("fetch failed.. Retry in 5 sec");
         await new Promise((r) => setTimeout(r, 5000));
         return retryYearnFetch();
