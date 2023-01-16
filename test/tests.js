@@ -2,25 +2,17 @@
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
 const fetch = (...args) =>
-  import('node-fetch').then(({ default: fetch }) => fetch(...args));
+    import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 var addressToApy = new Map();
 var positionToAddress = new Map();
 var beefyAddressToName = new Map();
-
-
-
 
 ////////////////////////////////
 // todo
 // think about NaN in beefy
 // set it to zero?
 ////////////////////////////////
-
-
-
-
-
 
 async function fetchYearnApy() {
     let url = `https://api.yearn.finance/v1/chains/250/vaults/all`;
@@ -69,9 +61,9 @@ async function fetchBeefyApy() {
     let data = await response.json();
     for (let i = 0; i < beefyTokens.length; i++) {
         let name = beefyAddressToName.get(beefyTokens[i]);
-        addressToApy.set(beefyTokens[i], (data[name]*100).toFixed(3));
-        console.log(beefyTokens[i], name, (data[name]*100).toFixed(3));
-    }    
+        addressToApy.set(beefyTokens[i], (data[name] * 100).toFixed(3));
+        console.log(beefyTokens[i], name, (data[name] * 100).toFixed(3));
+    }
 }
 
 const yearnTokens = [
@@ -96,7 +88,6 @@ const yearnTokens = [
     "0x2dd7C9371965472E5A5fD28fbE165007c61439E1", //3poolV2-f
 ];
 const beefyTokens = [
-    
     "0xd6070ae98b8069de6B494332d1A1a81B6179D960", // BIFI Maxi
     "0x91f7120898b4be26cC1e84F421e76725c07d1361", // DEI-USDC LP
     "0xaF918eF5b9f33231764A5557881E6D3e5277d456", // DEUS-FTM LP
@@ -359,8 +350,9 @@ describe("Float", function () {
         let ApyWritten = [];
         for (i = 0; i < combinedTokens.length; i++) {
             ApySent.push(addressToApy.get(combinedTokens[i]));
-            ApyWritten.push((await ApyOracle.getValueForToken(combinedTokens[i])).toString());
-
+            ApyWritten.push(
+                (await ApyOracle.getValueForToken(combinedTokens[i])).toString()
+            );
         }
         console.log("apy sent: ", ApySent);
         console.log("apy written: ", ApyWritten);

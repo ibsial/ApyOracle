@@ -69,7 +69,6 @@ contract Float is Ownable {
         return (values[_slot] << (_firstBytePos * 8)) >> 240;
     }
 
-
     // decode hex number to uint256
     // consider mantissa taking first 2 bits
     function _decodeValue(bytes32 _value) private pure returns (uint256) {
@@ -88,11 +87,14 @@ contract Float is Ownable {
         bytes32 value = _getValue(pos.slot, pos.fraction);
         return _decodeValue(value);
     }
+
     function getValueForToken(address _token) public view returns (uint256) {
         return _getValueForToken(_token);
     }
 
-    function getValuesForTokens(address[] memory _tokens) public view returns (uint256[] memory apys) {
+    function getValuesForTokens(
+        address[] memory _tokens
+    ) public view returns (uint256[] memory apys) {
         apys = new uint256[](_tokens.length);
         for (uint i = 0; i < _tokens.length; i++) {
             apys[i] = (_getValueForToken(_tokens[i]));
