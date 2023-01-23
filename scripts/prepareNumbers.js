@@ -7,26 +7,26 @@ var addressToApy = new Map();
 var positionToAddress = new Map();
 var beefyAddressToName = new Map();
 
-var yearnTokens = [
-    "0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83", //WFTM
-    "0x82f0B8B456c1A451378467398982d4834b6829c1", //MIM
-    "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75", //USDC
-    "0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E", //DAI
-    "0x29b0Da86e484E1C0029B56e817912d778aC0EC69", //YFI
-    "0xdc301622e621166BD8E82f2cA0A26c13Ad0BE355", //FRAX
-    "0x049d68029688eAbF473097a2fC38ef61633A3C7A", //fUSDT
-    "0xD02a30d33153877BC20e5721ee53DeDEE0422B2F", //g3CRV
-    "0x58e57cA18B7A47112b877E31929798Cd3D703b0f", //crv3crypto
-    "0x1E4F97b9f9F913c46F1632781732927B9019C68b", //CRV
-    "0x74b23882a30290451A17c44f4F05243b6b58C76d", //ETH
-    "0x321162Cd933E2Be498Cd2267a90534A804051b11", //BTC
-    "0x468003B688943977e6130F4F68F23aad939a1040", //SPELL
-    "0x3129662808bEC728a27Ab6a6b9AFd3cBacA8A43c", //DOLA
-    "0x511D35c52a3C244E7b8bd92c0C297755FbD89212", //AVAX
-    "0xb3654dc3D10Ea7645f8319668E8F54d2574FBdC8", //LINK
-    "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE", //BOO
-    "0xfcef8a994209d6916EB2C86cDD2AFD60Aa6F54b1", //fBEETS
-    "0x2dd7C9371965472E5A5fD28fbE165007c61439E1", //3poolV2-f
+const yearnTokens = [
+    "0x0DEC85e74A92c52b7F708c4B10207D9560CEFaf0", //WFTM
+    "0x0A0b23D9786963DE69CB2447dC125c49929419d8", //MIM
+    "0xEF0210eB96c7EB36AF8ed1c20306462764935607", //USDC
+    "0x637eC617c86D24E421328e6CAEa1d92114892439", //DAI
+    "0x2C850cceD00ce2b14AA9D658b7Cad5dF659493Db", //YFI
+    "0x357ca46da26E1EefC195287ce9D838A6D5023ef3", //FRAX
+    "0x148c05caf1Bb09B5670f00D511718f733C54bC4c", //fUSDT
+    "0xF137D22d7B23eeB1950B3e19d1f578c053ed9715", //g3CRV
+    "0xCbCaF8cB8cbeAFA927ECEE0c5C56560F83E9B7D9", //crv3crypto
+    "0x0446acaB3e0242fCf33Aa526f1c95a88068d5042", //CRV
+    "0xCe2Fc0bDc18BD6a4d9A725791A3DEe33F3a23BB7", //ETH
+    "0xd817A100AB8A29fE3DBd925c2EB489D67F758DA9", //BTC
+    "0xD3c19eB022CAC706c898D60d756bf1535d605e1d", //SPELL
+    "0x1b48641D8251c3E84ecbe3f2bD76B3701401906D", //DOLA
+    "0x03B82e4070cA32FF63A03F2EcfC16c0165689a9d", //AVAX
+    "0xf2d323621785A066E64282d2B407eAc79cC04966", //LINK
+    "0x0fBbf9848D969776a5Eb842EdAfAf29ef4467698", //BOO
+    "0x1e2fe8074a5ce1Bb7394856B0C618E75D823B93b", //fBEETS
+    "0xA97E7dA01C7047D6a65f894c99bE8c832227a8BC", //3poolV2-f
 ];
 
 var beefyTokens = [
@@ -94,13 +94,10 @@ async function fetchYearnApy() {
     for (let i = 0; i < data.length; i++) {
         // convert to percentage and leave only 3 decimals
         addressToApy.set(
-            data[i].token.address,
+            data[i].address,
             (data[i].apy.net_apy * 100).toFixed(3)
         );
-        console.log(
-            data[i].token.address,
-            (data[i].apy.net_apy * 100).toFixed(3)
-        );
+        console.log(data[i].address, (data[i].apy.net_apy * 100).toFixed(3));
     }
 }
 
@@ -132,8 +129,16 @@ async function fetchBeefyApy() {
     let data = await response.json();
     for (let i = 0; i < beefyTokens.length; i++) {
         let name = beefyAddressToName.get(beefyTokens[i]);
-        addressToApy.set(beefyTokens[i], (data[name] * 100).toFixed(3));
-        console.log(beefyTokens[i], name, (data[name] * 100).toFixed(3));
+        if (data[name] == undefined) {
+            console.log(
+                `token \n ${name}\nis not supported, writing 0 APY to it`
+            );
+            addressToApy.set(beefyTokens[i], "0.000");
+            console.log(beefyTokens[i], name, "0.000");
+        } else {
+            addressToApy.set(beefyTokens[i], (data[name] * 100).toFixed(3));
+            console.log(beefyTokens[i], name, (data[name] * 100).toFixed(3));
+        }
     }
 }
 
@@ -149,6 +154,7 @@ async function fetchTokenPositions(addressArray) {
     for (let i = 0; i < addressArray.length; i++) {
         let pos = await ApyOracle.position(addressArray[i]);
         positionToAddress.set(`${pos}`, addressArray[i]);
+        console.log(`${pos}`, addressArray[i]);
     }
 }
 
@@ -164,7 +170,7 @@ function orderTokenApy(addressArray) {
         let apy = addressToApy.get(token);
         console.log(token, apy, `slot: ${slot}, fraction ${2 * (i % 16)}`);
 
-        if (i % 15 == 0 && i != 0) {
+        if (2 * (i % 16) == 30 && i != 0) {
             slot++;
         }
         if (apy == undefined) {
@@ -180,7 +186,7 @@ function orderTokenApy(addressArray) {
 // takes apy array and converts to desired Hex
 // float -> binary(mantissa + integer) -> hex(binary)
 // returns hex array sorted like hardcoded tokenlist
-function floatToFormatedHex(inputFloatNumbers) {
+function floatToFormatedHex(orderedApyArr) {
     // receive normal float numbers
     // convert them to appropriate format e.g. xxx.xxx
     // max number is 16383
@@ -192,7 +198,7 @@ function floatToFormatedHex(inputFloatNumbers) {
 
     console.log("converting floats to hex");
 
-    for (number in inputFloatNumbers) {
+    for (number in orderedApyArr) {
         /* 
         feature to write numbers in a smart way
         we need to keep variety between very big and very small numbers
@@ -203,28 +209,33 @@ function floatToFormatedHex(inputFloatNumbers) {
         if num > 9999
            => cut all zeroes
         */
-        if (parseFloat(inputFloatNumbers[number]) > 99) {
-            inputFloatNumbers[number] = parseFloat(inputFloatNumbers[number])
+        function workaroundNum(string) {
+            return parseFloat(
+                orderedApyArr[number].split(".")[0] +
+                    orderedApyArr[number].split(".")[1]
+            );
+        }
+        if (workaroundNum(orderedApyArr[number]) >= 1638300) {
+            // 1638.300
+            orderedApyArr[number] = parseFloat(orderedApyArr[number])
+                .toFixed(1)
+                .toString();
+        }
+
+        if (workaroundNum(orderedApyArr[number]) > 163830) {
+            // 163.830
+            orderedApyArr[number] = orderedApyArr[number].split(".")[0];
+        }
+        if (workaroundNum(orderedApyArr[number]) > 16383) {
+            // 16.383
+            orderedApyArr[number] = parseFloat(orderedApyArr[number])
                 .toFixed(2)
                 .toString();
-
-            if (inputFloatNumbers[number] > 999) {
-                inputFloatNumbers[number] = parseFloat(
-                    inputFloatNumbers[number]
-                )
-                    .toFixed(1)
-                    .toString();
-            }
-
-            if (inputFloatNumbers[number] > 9999) {
-                inputFloatNumbers[number] =
-                    inputFloatNumbers[number].split(".")[0];
-            }
         }
 
         // split float number into integer and decimal parts
-        let integerPart = inputFloatNumbers[number].split(".")[0];
-        let decimalPart = inputFloatNumbers[number].split(".")[1];
+        let integerPart = orderedApyArr[number].split(".")[0];
+        let decimalPart = orderedApyArr[number].split(".")[1];
 
         if (decimalPart == undefined) {
             decimalPart = "";
@@ -246,6 +257,7 @@ function floatToFormatedHex(inputFloatNumbers) {
         //  if true put 16383
         if (mantissaToBinary.length + decToBinary.length > 16) {
             console.log("FAIL! \nconverting this number to max int14");
+            console.log(integerPart, ",", decimalPart);
             decToBinary = parseInt("16383").toString(2);
         }
 
@@ -365,12 +377,12 @@ async function addTokens(addressesArrays) {
             PositionData.push(2 * j);
 
             positionDatas.push(PositionData);
+
+            console.log(addressesArrays[i][j], PositionData);
+
             PositionData = [];
         }
     }
-    console.log(positionDatas);
-    console.log(addresses);
-
     // comment these 2 lines to see calculations only
     let resp = await ApyOracle.addTokens(addresses, positionDatas);
     console.log(resp);
@@ -385,16 +397,18 @@ async function postNewApy(hardcodedArray) {
     let orderedApyArr = orderTokenApy(hardcodedArray);
     let doubleNumbersArr = floatToFormatedHex(orderedApyArr);
     let newApySlots = hexToBytes32(doubleNumbersArr);
-    // await sendApySlots(newApySlots); // comment this function to see calculations only
+    await sendApySlots(newApySlots); // comment this function to see calculations only
 }
 
 async function changeTokenPositions() {
-    let arrayOfAddressesArrays = await splitArrayToFixedLength(yearnTokens);
+    let arrayOfAddressesArrays = await splitArrayToFixedLength(combinedTokens);
     await addTokens(arrayOfAddressesArrays);
 }
 async function main() {
     postNewApy(combinedTokens);
     // changeTokenPositions();
+
+    // await fetchTokenPositions(combinedTokens);
 }
 
 main().catch((error) => {
