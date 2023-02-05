@@ -100,4 +100,16 @@ contract Float is Ownable {
             apys[i] = (_getValueForToken(_tokens[i]));
         }
     }
+
+    function findMaxApy(address[] memory _tokens) external view returns (uint, address) {
+        uint maxValue = 0;
+        address maxAddress;
+        for (uint i = 0; i < _tokens.length; i++) {
+            if (getValueForToken(_tokens[i]) > maxValue) {
+                maxValue = getValueForToken(_tokens[i]);
+                maxAddress = _tokens[i];
+            }
+        }
+        return (maxValue, maxAddress);
+    }
 }
