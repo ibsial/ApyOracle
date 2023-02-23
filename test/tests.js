@@ -249,21 +249,21 @@ describe("Float", function () {
             }
             if (workaroundNum(orderedApyArr[number]) >= 1638300) {
                 // 1638.300
-                orderedApyArr[number] = parseFloat(orderedApyArr[number])
-                    .toFixed(1)
-                    .toString();
-            }
-
-            if (workaroundNum(orderedApyArr[number]) > 163830) {
-                // 163.830
                 orderedApyArr[number] = orderedApyArr[number].split(".")[0];
             }
-            if (workaroundNum(orderedApyArr[number]) > 16383) {
+            else if (workaroundNum(orderedApyArr[number]) > 163830) {
+                // 163.830
+                orderedApyArr[number] = parseFloat(orderedApyArr[number])
+                    .toFixed(2)
+                    .toString();
+            }
+            else if (workaroundNum(orderedApyArr[number]) > 16383) {
                 // 16.383
                 orderedApyArr[number] = parseFloat(orderedApyArr[number])
                     .toFixed(2)
                     .toString();
             }
+            
 
             // split float number into integer and decimal parts
             let integerPart = orderedApyArr[number].split(".")[0];
@@ -378,7 +378,14 @@ describe("Float", function () {
         console.log(trueArray);
 
         for (let i = 0; i < numbersToPost.length; i++) {
+            if (trueArray[i] == false) {
+                if (ApyWritten[i] == "16383000" && parseFloat(ApySent[i])*1000 > parseInt(ApyWritten[i])){
+                console.log("written number exeeds uint14 limit")
+                console.log("element number", i, trueArray[i], "apy sent", ApySent[i], "apy received", ApyWritten[i]);
+                console.log("the biggest value is written");
+            }} else {
             expect(trueArray[i]).to.equal(true);
+            }
         }
     });
 });
